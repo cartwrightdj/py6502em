@@ -1,0 +1,479 @@
+Modules list:
+-------------
+procs.o:
+    CODE              Offs=000000  Size=00000B  Align=00001  Fill=0000
+    PROCTBL           Offs=000000  Size=000040  Align=00001  Fill=0000
+kvprintf.o:
+    CODE              Offs=00000B  Size=0003A2  Align=00001  Fill=0000
+    BSS               Offs=000000  Size=00002B  Align=00001  Fill=0000
+    DATA              Offs=000000  Size=000003  Align=00001  Fill=0000
+kvio.o:
+    CODE              Offs=0003AD  Size=000076  Align=00001  Fill=0000
+    BSS               Offs=00002B  Size=000040  Align=00001  Fill=0000
+crt0.o:
+    STARTUP           Offs=000000  Size=00002F  Align=00001  Fill=0000
+    VECTORS           Offs=000000  Size=000006  Align=00001  Fill=0000
+zeropage.o:
+    ZEROPAGE          Offs=000000  Size=00001A  Align=00001  Fill=0000
+ldaxsp.o:
+    CODE              Offs=000423  Size=000009  Align=00001  Fill=0000
+keros.o:
+    CODE              Offs=00042C  Size=00023C  Align=00001  Fill=0000
+    RODATA            Offs=000000  Size=000095  Align=00001  Fill=0000
+    BSS               Offs=00006B  Size=00000B  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(_file.o):
+    DATA              Offs=000003  Size=00001E  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(_hextab.o):
+    RODATA            Offs=000095  Size=000010  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(_longminstr.o):
+    RODATA            Offs=0000A5  Size=00000C  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(_printf.o):
+    CODE              Offs=000668  Size=0003A2  Align=00001  Fill=0000
+    BSS               Offs=000076  Size=00002B  Align=00001  Fill=0000
+    DATA              Offs=000021  Size=000003  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(_seterrno.o):
+    CODE              Offs=000A0A  Size=000009  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(add.o):
+    CODE              Offs=000A13  Size=00001C  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(addysp.o):
+    CODE              Offs=000A2F  Size=00000E  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(aslax1.o):
+    CODE              Offs=000A3D  Size=000008  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(axlong.o):
+    CODE              Offs=000A45  Size=00000D  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(bneg.o):
+    CODE              Offs=000A52  Size=00000E  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(ctype.o):
+    RODATA            Offs=0000B1  Size=00008B  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(ctypemask.o):
+    CODE              Offs=000A60  Size=00001E  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(decsp2.o):
+    CODE              Offs=000A7E  Size=00000D  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(decsp3.o):
+    CODE              Offs=000A8B  Size=00000D  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(decsp4.o):
+    CODE              Offs=000A98  Size=00000D  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(decsp6.o):
+    CODE              Offs=000AA5  Size=00000D  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(errno.o):
+    BSS               Offs=0000A1  Size=000002  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(fwrite.o):
+    CODE              Offs=000AB2  Size=000079  Align=00001  Fill=0000
+    BSS               Offs=0000A3  Size=000002  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(incax1.o):
+    CODE              Offs=000B2B  Size=000007  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(incsp2.o):
+    CODE              Offs=000B32  Size=000016  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(incsp3.o):
+    CODE              Offs=000B48  Size=000005  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(incsp4.o):
+    CODE              Offs=000B4D  Size=000005  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(incsp6.o):
+    CODE              Offs=000B52  Size=000005  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(incsp7.o):
+    CODE              Offs=000B57  Size=000005  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(ldaui.o):
+    CODE              Offs=000B5C  Size=000009  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(lneg.o):
+    CODE              Offs=000B65  Size=00001E  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(lpush.o):
+    CODE              Offs=000B83  Size=000021  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(ltoa.o):
+    CODE              Offs=000BA4  Size=000095  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(makebool.o):
+    CODE              Offs=000C39  Size=00002C  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(mul.o):
+    CODE              Offs=000C65  Size=000045  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(mul8.o):
+    CODE              Offs=000CAA  Size=00003A  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(mulax9.o):
+    CODE              Offs=000CE4  Size=000017  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(popptr1.o):
+    CODE              Offs=000CFB  Size=00000E  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(printf.o):
+    CODE              Offs=000D09  Size=000033  Align=00001  Fill=0000
+    BSS               Offs=0000A5  Size=000001  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(push1.o):
+    CODE              Offs=000D3C  Size=000005  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(pushax.o):
+    CODE              Offs=000D41  Size=00001A  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(pushwsp.o):
+    CODE              Offs=000D5B  Size=00001C  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(regswap2.o):
+    CODE              Offs=000D77  Size=000016  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(staxsp.o):
+    CODE              Offs=000D8D  Size=00000B  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(strchr.o):
+    CODE              Offs=000D98  Size=000027  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(strcmp.o):
+    CODE              Offs=000DBF  Size=000021  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(strlen.o):
+    CODE              Offs=000DE0  Size=000016  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(strlower.o):
+    CODE              Offs=000DF6  Size=000027  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(strtok.o):
+    CODE              Offs=000E1D  Size=0000CB  Align=00001  Fill=0000
+    DATA              Offs=000024  Size=000002  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(udiv.o):
+    CODE              Offs=000EE8  Size=00004F  Align=00001  Fill=0000
+C:\Users\User\Documents\cc65\lib/none.lib(vfprintf.o):
+    CODE              Offs=000F37  Size=000061  Align=00001  Fill=0000
+    DATA              Offs=000026  Size=000008  Align=00001  Fill=0000
+
+
+Segment list:
+-------------
+Name                   Start     End    Size  Align
+----------------------------------------------------
+ZEROPAGE              000000  000019  00001A  00001
+PROCTBL               000500  00053F  000040  00001
+DATA                  001000  00102D  00002E  00001
+BSS                   00102E  0010D3  0000A6  00001
+RODATA                008000  00813B  00013C  00001
+CODE                  00813C  0090D3  000F98  00001
+STARTUP               0090D4  009102  00002F  00001
+VECTORS               00FFFA  00FFFF  000006  00001
+
+
+Exports list by name:
+---------------------
+__RAM_SIZE__              003000 REA    __RAM_START__             000300 REA    
+__STARTUP__               000001 REA    ___errno                  0010CF RLA    
+___seterrno               008B46 RLA    __ctype                   0080B1 RLA    
+__ctypeidx                0080BC RLA    __hextab                  008095 RLA    
+__longminstr              0080A5 RLA    __printf                  008895 RLA    
+_fwrite                   008BEE RLA    _get_proc_state_base      00813C RLA    
+_hwirq                    00879D RLA    _input                    00852F RLA    
+_kvprint                  0084F3 RLA    _ltoa                     008CF8 RLA    
+_main                     00875E RLA    _printf                   008E45 RLA    
+_stdout                   00101D RLA    _strchr                   008ED4 RLA    
+_strcmp                   008EFB RLA    _strlen                   008F1C RLA    
+_strlower                 008F32 RLA    _strtok                   008F59 RLA    
+_ultoa                    008D39 RLA    _vfprintf                 0090AB RLA    
+_write                    0084E9 RLA    addysp                    008B6C RLA    
+aslax1                    008B79 RLA    axlong                    008B81 RLA    
+axulong                   008B87 RLA    bnegax                    008B8E RLA    
+booleq                    008D7B RLA    boolult                   008D94 RLA    
+ctypemaskdirect           008BA0 RLA    decsp2                    008BBA RLA    
+decsp3                    008BC7 RLA    decsp4                    008BD4 RLA    
+decsp6                    008BE1 RLA    incax1                    008C67 RLA    
+incsp2                    008C76 RLA    incsp3                    008C84 RLA    
+incsp4                    008C89 RLA    incsp6                    008C8E RLA    
+incsp7                    008C93 RLA    ldauidx                   008C98 RLA    
+ldax0sp                   00855F RLA    ldaxysp                   008561 RLA    
+mul8x16                   008DE8 RLA    mul8x16a                  008DF2 RLA    
+mulax9                    008E20 RLA    negeax                    008CA1 RLA    
+popax                     008C6E RLA    popptr1                   008E37 RLA    
+proc_tbl                  000500 RLA    ptr1                      000008 RLZ    
+ptr2                      00000A RLZ    ptr3                      00000C RLZ    
+ptr4                      00000E RLZ    push1                     008E78 RLA    
+pusha0                    008E7F RLA    pushax                    008E81 RLA    
+pusheax                   008CC8 RLA    pushwysp                  008E99 RLA    
+regbank                   000014 RLZ    regswap2                  008EB3 RLA    
+sp                        000000 RLZ    sreg                      000002 RLZ    
+stax0sp                   008EC9 RLA    staxysp                   008ECB RLA    
+tmp1                      000010 RLZ    tmp2                      000011 RLZ    
+tosaddax                  008B51 RLA    tosudivax                 009026 RLA    
+tosumulax                 008DA1 RLA    
+
+
+Exports list by value:
+----------------------
+sp                        000000 RLZ    __STARTUP__               000001 REA    
+sreg                      000002 RLZ    ptr1                      000008 RLZ    
+ptr2                      00000A RLZ    ptr3                      00000C RLZ    
+ptr4                      00000E RLZ    tmp1                      000010 RLZ    
+tmp2                      000011 RLZ    regbank                   000014 RLZ    
+__RAM_START__             000300 REA    proc_tbl                  000500 RLA    
+_stdout                   00101D RLA    ___errno                  0010CF RLA    
+__RAM_SIZE__              003000 REA    __hextab                  008095 RLA    
+__longminstr              0080A5 RLA    __ctype                   0080B1 RLA    
+__ctypeidx                0080BC RLA    _get_proc_state_base      00813C RLA    
+_write                    0084E9 RLA    _kvprint                  0084F3 RLA    
+_input                    00852F RLA    ldax0sp                   00855F RLA    
+ldaxysp                   008561 RLA    _main                     00875E RLA    
+_hwirq                    00879D RLA    __printf                  008895 RLA    
+___seterrno               008B46 RLA    tosaddax                  008B51 RLA    
+addysp                    008B6C RLA    aslax1                    008B79 RLA    
+axlong                    008B81 RLA    axulong                   008B87 RLA    
+bnegax                    008B8E RLA    ctypemaskdirect           008BA0 RLA    
+decsp2                    008BBA RLA    decsp3                    008BC7 RLA    
+decsp4                    008BD4 RLA    decsp6                    008BE1 RLA    
+_fwrite                   008BEE RLA    incax1                    008C67 RLA    
+popax                     008C6E RLA    incsp2                    008C76 RLA    
+incsp3                    008C84 RLA    incsp4                    008C89 RLA    
+incsp6                    008C8E RLA    incsp7                    008C93 RLA    
+ldauidx                   008C98 RLA    negeax                    008CA1 RLA    
+pusheax                   008CC8 RLA    _ltoa                     008CF8 RLA    
+_ultoa                    008D39 RLA    booleq                    008D7B RLA    
+boolult                   008D94 RLA    tosumulax                 008DA1 RLA    
+mul8x16                   008DE8 RLA    mul8x16a                  008DF2 RLA    
+mulax9                    008E20 RLA    popptr1                   008E37 RLA    
+_printf                   008E45 RLA    push1                     008E78 RLA    
+pusha0                    008E7F RLA    pushax                    008E81 RLA    
+pushwysp                  008E99 RLA    regswap2                  008EB3 RLA    
+stax0sp                   008EC9 RLA    staxysp                   008ECB RLA    
+_strchr                   008ED4 RLA    _strcmp                   008EFB RLA    
+_strlen                   008F1C RLA    _strlower                 008F32 RLA    
+_strtok                   008F59 RLA    tosudivax                 009026 RLA    
+_vfprintf                 0090AB RLA    
+
+
+Imports list:
+-------------
+__RAM_SIZE__ ([linker generated]):
+    crt0.o                    crt0.s:12
+__RAM_START__ ([linker generated]):
+    crt0.o                    crt0.s:12
+__STARTUP__ (crt0.o):
+    keros.o                   keros.s:13
+___errno (errno.o):
+    _seterrno.o               /home/runner/work/cc65/cc65/asminc/errno.inc:7
+___seterrno (_seterrno.o):
+    fwrite.o                  /home/runner/work/cc65/cc65/asminc/errno.inc:9
+__ctype (ctype.o):
+    ctypemask.o               common/ctypemask.s:23
+__ctypeidx (ctype.o):
+    ctypemask.o               common/ctypemask.s:24
+__hextab (_hextab.o):
+    ltoa.o                    common/ltoa.s:10
+__longminstr (_longminstr.o):
+    ltoa.o                    common/ltoa.s:10
+__printf (_printf.o):
+    vfprintf.o                common/vfprintf.s:10
+_fwrite (fwrite.o):
+    vfprintf.o                common/vfprintf.s:10
+_get_proc_state_base (procs.o):
+    keros.o                   keros.s:15
+_hwirq (keros.o):
+    crt0.o                    crt0.s:11
+_input (kvio.o):
+    keros.o                   keros.s:14
+_kvprint (kvio.o):
+    crt0.o                    crt0.s:14
+    kvprintf.o                kvprintf.s:12
+_ltoa (ltoa.o):
+    _printf.o                 common/_printf.s:12
+    kvprintf.o                kvprintf.s:15
+_main (keros.o):
+    crt0.o                    crt0.s:11
+    [linker generated]        keros.cfg:22
+_printf (printf.o):
+    keros.o                   keros.s:16
+_stdout (_file.o):
+    printf.o                  common/printf.s:8
+    crt0.o                    crt0.s:14
+_strchr (strchr.o):
+    strtok.o                  ../libwrk/none/strtok.s:15
+_strcmp (strcmp.o):
+    keros.o                   keros.s:17
+_strlen (strlen.o):
+    _printf.o                 common/_printf.s:13
+    kvio.o                    kvio.s:14
+    kvprintf.o                kvprintf.s:16
+_strlower (strlower.o):
+    _printf.o                 common/_printf.s:13
+    kvprintf.o                kvprintf.s:16
+_strtok (strtok.o):
+    keros.o                   keros.s:18
+_ultoa (ltoa.o):
+    _printf.o                 common/_printf.s:12
+    kvprintf.o                kvprintf.s:15
+_vfprintf (vfprintf.o):
+    printf.o                  common/printf.s:8
+_write (kvio.o):
+    fwrite.o                  common/fwrite.s:10
+addysp (addysp.o):
+    incsp7.o                  runtime/incsp7.s:8
+    incsp6.o                  runtime/incsp6.s:8
+    fwrite.o                  common/fwrite.s:11
+    printf.o                  common/printf.s:8
+    incsp4.o                  runtime/incsp4.s:8
+    incsp3.o                  runtime/incsp3.s:8
+aslax1 (aslax1.o):
+    keros.o                   keros.s:364
+axlong (axlong.o):
+    _printf.o                 common/_printf.s:11
+    kvprintf.o                kvprintf.s:14
+axulong (axlong.o):
+    _printf.o                 common/_printf.s:11
+    kvprintf.o                kvprintf.s:14
+bnegax (bneg.o):
+    keros.o                   keros.s:364
+booleq (makebool.o):
+    keros.o                   keros.s:364
+boolult (makebool.o):
+    keros.o                   keros.s:364
+ctypemaskdirect (ctypemask.o):
+    strlower.o                common/strlower.s:14
+decsp2 (decsp2.o):
+    keros.o                   keros.s:364
+decsp3 (decsp3.o):
+    strtok.o                  ../libwrk/none/strtok.s:157
+    keros.o                   keros.s:364
+decsp4 (decsp4.o):
+    lpush.o                   runtime/lpush.s:12
+    keros.o                   keros.s:364
+decsp6 (decsp6.o):
+    _printf.o                 common/_printf.s:11
+    kvprintf.o                kvprintf.s:14
+incax1 (incax1.o):
+    strtok.o                  ../libwrk/none/strtok.s:157
+incsp2 (incsp2.o):
+    popptr1.o                 runtime/popptr1.s:8
+    keros.o                   keros.s:364
+incsp3 (incsp3.o):
+    keros.o                   keros.s:364
+incsp4 (incsp4.o):
+    keros.o                   keros.s:364
+incsp6 (incsp6.o):
+    fwrite.o                  common/fwrite.s:11
+    vfprintf.o                common/vfprintf.s:9
+incsp7 (incsp7.o):
+    strtok.o                  ../libwrk/none/strtok.s:157
+ldauidx (ldaui.o):
+    keros.o                   keros.s:364
+ldax0sp (ldaxsp.o):
+    strtok.o                  ../libwrk/none/strtok.s:157
+ldaxysp (ldaxsp.o):
+    fwrite.o                  common/fwrite.s:11
+    keros.o                   keros.s:364
+    keros.o                   keros.s:364
+    keros.o                   keros.s:364
+mul8x16 (mul8.o):
+    mul.o                     runtime/mul.s:8
+mul8x16a (mul8.o):
+    mul.o                     runtime/mul.s:8
+mulax9 (mulax9.o):
+    keros.o                   keros.s:364
+negeax (lneg.o):
+    ltoa.o                    common/ltoa.s:9
+popax (incsp2.o):
+    strchr.o                  common/strchr.s:9
+    _printf.o                 common/_printf.s:11
+    ltoa.o                    common/ltoa.s:9
+    kvio.o                    kvio.s:13
+    kvprintf.o                kvprintf.s:14
+popptr1 (popptr1.o):
+    udiv.o                    runtime/udiv.s:9
+    mul8.o                    runtime/mul8.s:9
+    mul.o                     runtime/mul.s:9
+    strcmp.o                  common/strcmp.s:8
+    ltoa.o                    common/ltoa.s:9
+proc_tbl (procs.o):
+    crt0.o                    crt0.s:11
+ptr1 (zeropage.o):
+    udiv.o                    runtime/udiv.s:10
+    strchr.o                  common/strchr.s:10
+    mul8.o                    runtime/mul8.s:10
+    mul.o                     runtime/mul.s:10
+    fwrite.o                  common/fwrite.s:14
+    _printf.o                 /home/runner/work/cc65/cc65/asminc/zeropage.inc:12
+    vfprintf.o                common/vfprintf.s:11
+    strlower.o                common/strlower.s:13
+    strcmp.o                  common/strcmp.s:9
+    printf.o                  common/printf.s:9
+    popptr1.o                 runtime/popptr1.s:9
+    mulax9.o                  runtime/mulax9.s:10
+    ltoa.o                    common/ltoa.s:11
+    ldaui.o                   runtime/ldaui.s:8
+    kvio.o                    zeropage.inc:12
+    kvprintf.o                zeropage.inc:12
+ptr2 (zeropage.o):
+    _printf.o                 /home/runner/work/cc65/cc65/asminc/zeropage.inc:12
+    strlower.o                common/strlower.s:13
+    strcmp.o                  common/strcmp.s:9
+    ltoa.o                    common/ltoa.s:11
+    kvprintf.o                zeropage.inc:12
+ptr3 (zeropage.o):
+    ltoa.o                    common/ltoa.s:11
+ptr4 (zeropage.o):
+    udiv.o                    runtime/udiv.s:10
+    mul8.o                    runtime/mul8.s:10
+    mul.o                     runtime/mul.s:10
+    strlen.o                  common/strlen.s:12
+push1 (push1.o):
+    _printf.o                 common/_printf.s:11
+    vfprintf.o                common/vfprintf.s:9
+    kvprintf.o                kvprintf.s:14
+pusha0 (pushax.o):
+    fwrite.o                  common/fwrite.s:11
+    push1.o                   runtime/push1.s:8
+pushax (pushax.o):
+    fwrite.o                  common/fwrite.s:11
+    _printf.o                 common/_printf.s:11
+    strtok.o                  ../libwrk/none/strtok.s:157
+    printf.o                  common/printf.s:8
+    keros.o                   keros.s:364
+    keros.o                   keros.s:364
+    keros.o                   keros.s:364
+    keros.o                   keros.s:364
+    kvio.o                    kvio.s:13
+    kvprintf.o                kvprintf.s:14
+pusheax (lpush.o):
+    _printf.o                 common/_printf.s:11
+    kvprintf.o                kvprintf.s:14
+pushwysp (pushwsp.o):
+    fwrite.o                  common/fwrite.s:11
+    vfprintf.o                common/vfprintf.s:9
+    strtok.o                  ../libwrk/none/strtok.s:157
+regbank (zeropage.o):
+    regswap2.o                runtime/regswap2.s:8
+    _printf.o                 /home/runner/work/cc65/cc65/asminc/zeropage.inc:14
+    strtok.o                  ../libwrk/none/strtok.s:10
+    kvprintf.o                zeropage.inc:14
+regswap2 (regswap2.o):
+    strtok.o                  ../libwrk/none/strtok.s:157
+sp (zeropage.o):
+    regswap2.o                runtime/regswap2.s:8
+    pushwsp.o                 runtime/pushwsp.s:8
+    addysp.o                  runtime/addysp.s:8
+    _printf.o                 /home/runner/work/cc65/cc65/asminc/zeropage.inc:11
+    vfprintf.o                common/vfprintf.s:11
+    strtok.o                  ../libwrk/none/strtok.s:10
+    staxsp.o                  runtime/staxsp.s:8
+    pushax.o                  runtime/pushax.s:8
+    printf.o                  common/printf.s:9
+    popptr1.o                 runtime/popptr1.s:9
+    lpush.o                   runtime/lpush.s:13
+    incsp2.o                  runtime/incsp2.s:8
+    decsp6.o                  runtime/decsp6.s:8
+    decsp4.o                  runtime/decsp4.s:8
+    decsp3.o                  runtime/decsp3.s:8
+    decsp2.o                  runtime/decsp2.s:8
+    add.o                     runtime/add.s:12
+    keros.o                   keros.s:10
+    ldaxsp.o                  ldaxsp.s:8
+    crt0.o                    zeropage.inc:11
+    kvprintf.o                zeropage.inc:11
+sreg (zeropage.o):
+    udiv.o                    runtime/udiv.s:10
+    lneg.o                    runtime/lneg.s:11
+    _printf.o                 /home/runner/work/cc65/cc65/asminc/zeropage.inc:11
+    ltoa.o                    common/ltoa.s:11
+    lpush.o                   runtime/lpush.s:13
+    axlong.o                  runtime/axlong.s:9
+    kvprintf.o                zeropage.inc:11
+stax0sp (staxsp.o):
+    strtok.o                  ../libwrk/none/strtok.s:157
+staxysp (staxsp.o):
+    keros.o                   keros.s:364
+    keros.o                   keros.s:364
+tmp1 (zeropage.o):
+    strchr.o                  common/strchr.s:10
+    mul.o                     runtime/mul.s:10
+    _printf.o                 /home/runner/work/cc65/cc65/asminc/zeropage.inc:13
+    ltoa.o                    common/ltoa.s:11
+    aslax1.o                  runtime/aslax1.s:8
+    add.o                     runtime/add.s:12
+    kvio.o                    zeropage.inc:13
+    kvprintf.o                zeropage.inc:13
+tmp2 (zeropage.o):
+    kvio.o                    zeropage.inc:13
+tosaddax (add.o):
+    keros.o                   keros.s:364
+tosudivax (udiv.o):
+    fwrite.o                  common/fwrite.s:12
+tosumulax (mul.o):
+    fwrite.o                  common/fwrite.s:12
+
