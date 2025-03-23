@@ -9,7 +9,7 @@
 | 4‐ | RTI impl | EOR X,ind | ---  | ---  | ---  | EOR zpg   | LSR zpg   | ---  | PHA impl | EOR # | LSR A | ---  | JMP abs | EOR abs | LSR abs | ---  |
 | 5‐ | BVC rel  | EOR ind,Y | ---  | ---  | ---  | EOR zpg,X | LSR zpg,X | ---  | CLI impl | EOR abs,Y | ---  | ---  | ---  | EOR abs,X | LSR abs,X | ---  |
 | 6‐ | RTS impl | ADC X,ind | ---  | ---  | ---  | ADC zpg   | ROR zpg   | ---  | PLA impl | ADC # | ROR A | ---  | JMP ind | ADC abs | ROR abs | ---  |
-| 7‐ | BVS rel  | ADC ind,Y | ---  | ---  | ---  | ADC zpg,X | ROR zpg,X | ---  | SEI impl | ADC abs,Y | ---  | ---  | ---  | ADC abs,X | ROR abs,X | ---  |
+| 7‐ | BVS rel  | ADC ind,Y | ADC ind zp<sup>&copy;</sup>  | ---  | ---  | ADC zpg,X | ROR zpg,X | ---  | SEI impl | ADC abs,Y | ---  | ---  | ---  | ADC abs,X | ROR abs,X | ---  |
 | 8‐ | ---      | STA X,ind | ---  | ---  | STY zpg | STA zpg | STX zpg   | ---  | DEY impl | ---  | TXA impl | ---  | STY abs | STA abs | STX abs | ---  |
 | 9‐ | BCC rel  | STA ind,Y | ---  | ---  | STY zpg,X | STA zpg,X | STX zpg,Y | ---  | TYA impl | STA abs,Y | TXS impl | ---  | ---  | STA abs,X | ---  | ---  |
 | A‐ | LDY #    | LDA X,ind | LDX # | ---  | LDY zpg | LDA zpg | LDX zpg   | ---  | TAY impl | LDA # | TAX impl | ---  | LDY abs | LDA abs | LDX abs | ---  |
@@ -18,3 +18,5 @@
 | D‐ | BNE rel  | CMP ind,Y | ---  | ---  | ---  | CMP zpg,X | DEC zpg,X | ---  | CLD impl | CMP abs,Y | ---  | ---  | ---  | CMP abs,X | DEC abs,X | ---  |
 | E‐ | CPX #    | SBC X,ind | ---  | ---  | CPX zpg | SBC zpg | INC zpg   | ---  | INX impl | SBC # | NOP impl | ---  | CPX abs | SBC abs | INC abs | ---  |
 | F‐ | BEQ rel  | SBC ind,Y | ---  | ---  | ---  | SBC zpg,X | INC zpg,X | ---  | SED impl | SBC abs,Y | ---  | ---  | ---  | SBC abs,X | INC abs,X | ---  |
+
+<sup>&copy;</sup> C65C02

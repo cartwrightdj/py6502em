@@ -1,14 +1,68 @@
-import os
+import uuid
 import socket
 import threading
 import time
+import os
 import re
 
+SLEEP = 0.1
 
-DEBUG_OPCODES = True
-SLEEP = .1
+class Ansi:
+    """
+    A collection of ANSI escape sequences for text formatting and color.
+    """
 
+    # Reset all attributes (color, style)
+    RESET = "\033[0m"
 
+    # Text styles
+    BOLD       = "\033[1m"
+    FAINT      = "\033[2m"
+    ITALIC     = "\033[3m"
+    UNDERLINE  = "\033[4m"
+    BLINK_SLOW = "\033[5m"
+    BLINK_RAPID= "\033[6m"
+    REVERSE    = "\033[7m"
+    HIDDEN     = "\033[8m"
+    STRIKE     = "\033[9m"
+
+    # Foreground (text) colors
+    FG_BLACK   = "\033[30m"
+    FG_RED     = "\033[31m"
+    FG_GREEN   = "\033[32m"
+    FG_YELLOW  = "\033[33m"
+    FG_BLUE    = "\033[34m"
+    FG_MAGENTA = "\033[35m"
+    FG_CYAN    = "\033[36m"
+    FG_WHITE   = "\033[37m"
+    # Bright (high-intensity) foreground colors
+    FG_BRIGHT_BLACK   = "\033[90m"
+    FG_BRIGHT_RED     = "\033[91m"
+    FG_BRIGHT_GREEN   = "\033[92m"
+    FG_BRIGHT_YELLOW  = "\033[93m"
+    FG_BRIGHT_BLUE    = "\033[94m"
+    FG_BRIGHT_MAGENTA = "\033[95m"
+    FG_BRIGHT_CYAN    = "\033[96m"
+    FG_BRIGHT_WHITE   = "\033[97m"
+
+    # Background colors
+    BG_BLACK   = "\033[40m"
+    BG_RED     = "\033[41m"
+    BG_GREEN   = "\033[42m"
+    BG_YELLOW  = "\033[43m"
+    BG_BLUE    = "\033[44m"
+    BG_MAGENTA = "\033[45m"
+    BG_CYAN    = "\033[46m"
+    BG_WHITE   = "\033[47m"
+    # Bright (high-intensity) background colors
+    BG_BRIGHT_BLACK   = "\033[100m"
+    BG_BRIGHT_RED     = "\033[101m"
+    BG_BRIGHT_GREEN   = "\033[102m"
+    BG_BRIGHT_YELLOW  = "\033[103m"
+    BG_BRIGHT_BLUE    = "\033[104m"
+    BG_BRIGHT_MAGENTA = "\033[105m"
+    BG_BRIGHT_CYAN    = "\033[106m"
+    BG_BRIGHT_WHITE   = "\033[107m"
 
 class ACIA_Server:
     def __init__(self, acia, host='0.0.0.0', port=6502):
@@ -68,8 +122,6 @@ class ACIA_Server:
             while self.running and self.client_socket:
                 out = self.acia.get_output()
                 if out and self.client_socket:
-                    #self.client_socket.sendall("Hello".encode('ascii'))
-                    print(f'Sening: {out} {hex(out), chr(out)}')
                     self.client_socket.sendall(bytes([out]))
 
                 time.sleep(0.01)
@@ -89,58 +141,8 @@ class ACIA_Server:
             self.server_socket = None
         print("ACIA server stopped")
 
-class AddressSpace:
-    def __init__(self,start:int, end:int, bits=8, read_only=False,name='AddressSpace'):
-        self.start = start
-        self.end = end
-        self.bits = bits
-        self.read_only = read_only
-        self.name = name if name else f'AddressSpace: {hex(start)}-{hex(end)}'
-        self._data = {i:0 for i in range(end+1)}
-
-        self.f = open(name + '_.mem', 'wb')
-        self.f.truncate(self.end - self.start + 1)
-        print(f"Created file '{name + '_.mem'}' of size {self.end - self.start + 1} bytes.")
-
-    def read(self, address:int):
-        if int(address) in self._data.keys():
-            return self._data[int(address)]
-        raise ValueError(f"Address {hex(address)} does not exist in {self.name}")
-    
-    def peek(self,address:int):
-        return self.read(address)
-
-    def write(self,address:int, value:int):
-        if int(address) in self._data.keys():
-            if 2**self.bits > value >= 0: 
-                self._data[int(address)] = value
-                
-                self.f.seek(address)
-                if isinstance(1,bytes):
-                    self.f.write(value)
-                else:
-                    self.f.write(value.to_bytes(1, 'little'))
-            else:
-                raise ValueError(f'Value {value} is to large')
-        else:
-            raise ValueError(f"Address {hex(address)} does not exist in {self.name}")
-
-    def ownes(self,address:int):
-        return address in self._data.keys()
-    
-    def remove_ownership(self,address:int):
-        if int(address) in self._data.keys():
-            del self._data[address]
-        else:
-            raise ValueError(f"{self.name} does not own address {address}")
-
-class ACIA(AddressSpace):
-    def __init__(self, start, end, read_only=False, name='ACIA'):
-        super().__init__(start, end, read_only, name)
-
-
-class Device:
-    def __init__(self,start,end,mode,name='MemoryBlock'):
+class ACIADevice:
+    def __init__(self,start,end,mode,name='Device_'):
         self.start = start
         self.end = end
         self.mode = mode
@@ -150,11 +152,12 @@ class Device:
         self.status = 0x02 
         self.server = ACIA_Server(self)
         self.server.start()
+        self.data = {address: 0 for address in range(start,end+1)}
         
     def key_press(self,char):
         if char != 10:
             self.input_buffer.append(char)
-            print(f'Key Press: {char} [{chr(char)}]')
+            
        
     def get_output(self):
         if len(self.output_buffer) > 0:
@@ -166,19 +169,7 @@ class Device:
     def peek(self,address):
         if len(self.input_buffer) > 0:
             char = self.input_buffer[0]
-            return char
-
-    def read_data(self):
-        # Reading data register clears the receive full bit
-        if len(self.input_buffer) > 0:
-            char = self.input_buffer.pop(0)
-            # after reading, if no more chars, clear bit 0
-            if len(self.input_buffer) == 0:
-                self.status &= ~0x01
-            return char
-        else:
-            # no data, return something like 0x00
-            return 0x00
+            return char        
             
     def write(self,address, data):
         #print(f'[{self.name}] --> {str(hex(address))[2:].zfill(4).upper()}:{str(hex(data))[2:].zfill(2).upper()}') 
@@ -202,15 +193,19 @@ class Device:
         else:
             assert False
           
-    def read(self,address):
+    def read(self,address,peek=False):
         if address == self.start: 
-            
-            data = self.read_data()
-            #data = data + 0x80
-            #print(f'Sending {data} ({chr(data)})')
-            return data 
-        
-        #KBDCR
+            # Reading data register clears the receive full bit
+            if len(self.input_buffer) > 0:
+                if peek:
+                    return self.input_buffer[0]
+                char = self.input_buffer.pop(0)        
+                if len(self.input_buffer) == 0:
+                    self.status &= ~0x01
+                return char 
+            else:
+                return 0x00         
+          
         elif address == self.start + 1:
             if len(self.input_buffer) > 0:
                 cr_value = 0x80
@@ -226,139 +221,237 @@ class Device:
             return dsp
         return 0x00
 
-class MMU:
-    def __init__(self):
-    # Internal hashmap to store items
-        self._addr_spaces = {}
-        self._watches = {}
+class AddressSpace:
+    def __init__(self,start:int,end:int,maxvalue=0xFF,ro=False,default_value=0x00,name='AddressSpace'):
+        self.start = start
+        self.end = end
+        self.maxvalue = maxvalue
+        self.ro = ro
+        self.name = name
+        self.data = {int(address): default_value for address in range(start,end+1)}
+        self.uuid = str(uuid.uuid4()).replace("-", "")[:8]
 
-    # Add an item to the container
-    def add(self, item):
-        print(f'Adding {item.name} {str(hex(item.start)).zfill(4).upper()}:{str(hex(item.end)).zfill(4).upper()}')
-        for i in range(item.start,item.end+1):
-            if i in self._addr_spaces.keys():
-                print(f"Overwriting address {hex(i)}, new owner: {item.name}")
-            self._addr_spaces[int(i)] = item
+        self.f = open(f'./mem/{name}_.mem', 'wb')
+        self.f.truncate(self.end - self.start + 1)
+        print(f"Created file '{name}_.mem' of size {self.end - self.start + 1} bytes.")
 
-    def add_watch(self,address,end=None,name='Watch'):
-        if end is None:
-            self._watches[address] = name
-        else:
-            for i in range(address,end):
-                self._watches[i] = name
-    
-    def watch(self,address,value=None):
-        if address in self._watches.keys():
-            if value is None:
-                print(f'[{self._watches[address]}]:<-{self._addr_spaces[address].peek(address):02X} {self._addr_spaces[address].peek(address)}')
-            else:
-                print(f'[{self._watches[address]}]:->{value:02X}')
+    def ownes(self,key):
+        return key in self.data.keys()
 
-    # Get an item by key
-    def __getitem__(self, address):
-        if address in self._addr_spaces:  
-            #print(f'Reading {address} from {self._addr_spaces[address].name}')
-            self.watch(address)         
-            return self._addr_spaces[address].read(address)
-        raise KeyError(f"Key '{address}' not found in container")
-
-    # Set an item by key
-    def __setitem__(self, address, value):
-        if value < 0: raise ValueError("Signed values should be in 2s Compliment")
-        if address in self._addr_spaces:   
-            self.watch(address,value)         
-            self._addr_spaces[address].write(address, value)                
-        else:
-            raise KeyError(f"Address '{str(hex(address))[2:].zfill(4).upper()} ({int(address)})' in not in the MemoryMap")
-
-    # Delete an item by key
-    def __delitem__(self, key):
-        if key in self._data:
-            del self._addr_spaces[key]
-        else:
-            raise KeyError(f"Key '{key}' not found in container")
-
-    # Check if a key is in the container
-    def __contains__(self, key):
-        return key in self._data
-
-    # Length of the container
-    def __len__(self):
-        return len(self._data)
-
-    # Iterator to make the container iterable
-    def __iter__(self):
-        return iter(self._data)
-
-    # String representation for easy debugging
-    def __repr__(self):
-        return f"Registers({self._data})"
-
-    # Additional helper method to get all items
-    def get_items(self):
-        return self._data.copy()
-
-    def dump(self):
-        
-        c = 0  # Counter to keep track of keys
-        hex_line = ""  # String to accumulate hex values
-        char_line = ""
-        lines = []
-        
-        
-        for key in self._addr_spaces.keys():
-            if int(key) % 16 == 0:
-                if c != 0:
-                    # Print the accumulated hex values for the previous batch
-                    lines.append(hex_line.strip() + '\t\t' + '[' + char_line + ']\n')
-                    #print(hex_line, char_line)
-                # Start a new line with the first key in the batch
-                if isinstance(key, int):
-                    formatted_key = f'{hex(key)}[{key:05d}]'
+    def __setitem__(self, key, value):
+        if not self.ro:
+            if key in self.data.keys():
+                if (self.maxvalue >= value >= 0):
+                    self.data[key] = value
+                    self.f.seek(key-self.start)
+                    self.f.write(value.to_bytes(1, 'little'))
+                    self.f.flush()
                 else:
-                    formatted_key = f'[{str(key)}]'
-                hex_value = f'{self._addr_spaces[key].read(key):02X} '
-                hex_line = f'{formatted_key} {hex_value}'
-                char_line = ''
-                char = f'{chr(self._addr_spaces[key].read(key))} '
-                if char.strip() == '': char = '_'
-                char_line += char 
-                #char_line = re.sub(r'[\r\n]+', ' ', char_line)
+                    assert False
+                    raise ValueError(f'Value: {value} is out of bounds.')
             else:
-                # Append only the hex value without the key name
-                key - int(key)
-                hex_value = f'{key:02X}'
-                hex_line += f'{self._addr_spaces[key].read(key):02X} '
-                char = f'{chr(self._addr_spaces[key].read(key))} '
-                if char.strip() == '': char = ' '
-                char_line += char 
-                #char_line = re.sub(r'[\r\n]+', ' ', char_line)
-            c += 1
-        
-        # Print the last line if it exists
-        if hex_line:
-            lines.append(hex_line.strip() + '\t\t' + '[' + char_line.replace('\n','').strip() + ']\n')
-            #print(hex_line)
-        
-        with open('memory_dump.txt', 'w',encoding="utf-8") as f:
-            f.writelines(lines)
+                raise IndexError(f'Address {key} does not exist in AddressSpace {self.uuid}')
+        else:
+            raise IndexError(f'{Ansi.BG_BRIGHT_RED}Address {key:04X} in AddressSpace {self.uuid} is Read Only{Ansi.RESET}')
+    
+    def write(self,address,value):
+        self.__setitem__(address,value)
+                
+    def __getitem__(self,key):
+        if key in self.data.keys():
+            return self.data[key]
 
-    def _load_from_bf(self,filename,start):
+    def read(self,key,peek=False):
+        return self.__getitem__(key)
+
+    def __call__(self):
+        return iter(self.data.items())
+
+    def _load_from_kb(self,start=0):
+        while True:
+            value = input(f"{start:04X} ({self.__getitem__(start):02X}): ")
+            if value == '': break
+            self.__setitem__(start,int(value,16))
+            start +=1
+                          
+    def _load_from_bf(self,filename,start) -> dict:
         startx = start
         start = start
-        with open(filename, 'r') as f:
-            lines = f.readlines()
-        for line in lines:
-            line = line.strip()
-            print(hex(start),line)
-            bytes = line.split(' ')
-            for byte in bytes:
-                self.__setitem__(start,int(byte.strip(),16))
+        symbols = {}
+        self.ro = False
+        with open(filename, 'rb') as f:
+            #lines = f.readlines()
+            sbytes = f.read()
+        for byte in sbytes:
+                self.__setitem__(start,int(byte))
                 start += 1
+        self.ro = True
+
+       # assert False
+        if os.path.exists('mapfile.map'):
+            symbols = {}
+            pattern = re.compile(r'(?:([_A-Za-z0-9]+)\s+([0-9A-Fa-f]{6})\s[A-Za-z]{3}\s?)+')
+            print(f"Loading symbols from file")
+            with open('mapfile.map', 'r') as f:
+                for line in f:
+                    matches = pattern.findall(line)
+                    for text, hex_val in matches:
+                        hex_val = int(hex_val,16)
+                        if hex_val in symbols.keys():
+                            if not symbols[hex_val] == text:
+                                symbols[hex_val] = symbols[hex_val] + ', ' + text
+                        else:
+                            symbols[hex_val] = text  
+
         print(f"Loaded {filename} from {hex(startx)} to {hex(start-1)}")
-      
-class CPU:
+        return symbols
+
+    def _dump(self):
+        rowsum = 0
+        con_zero = 0
+        hex_row = []
+        asc_row = []
+        dump = []
+        dump_str = []
+
+        for r, key in enumerate(self.data.keys()):
+            #if r == 160:
+                #break
+            #print(r)
+            if r % 16 == 0 and r >= 16:
+                if rowsum == 0:
+                    con_zero += 1
+                else:
+                    con_zero = 0
+                dump.append([key-16,hex_row,asc_row,con_zero])
+                hex_row = []
+                asc_row = []
+                rowsum = 0
+                
+            
+            rowsum += self.data[key]
+            hex_row.append(self.data[key])
+            asc_row.append(chr(self.data[key]))
+        
+        dump.reverse()
+        in_con = False
+        for r, (addr, hexv, ascval, cons) in enumerate(dump):
+            #print(addr, hexv, ascval, cons)
+            if int(cons) > 3:
+                if not in_con:
+                    dump_str.append("...")
+                in_con = True
+                
+                pass
+            elif int(cons) <=3:
+                in_con = False
+            if in_con == False:
+                hex_str = ' '.join(f"{h:02X}" for h in hexv)
+                asc_str = ''.join(f"{a:^3}" if 33 <= ord(a) <= 126 else ' . ' for a in ascval).replace('\n',' . ').replace('\r',' . ')
+                dump_str.append(f'{Ansi.FG_BRIGHT_BLUE} {addr:04X}{Ansi.RESET}: {hex_str}, \t {asc_str} {cons}')
+        
+        dump_str.reverse()
+        for string in dump_str:
+            print(string)
+            
+class MappedMemory:
+    def __init__(self,start:int,end:int) -> None:
+        self.start = start
+        self.end = end
+        self.current_map:AddressSpace = None
+        self.mapping = {}
+
+    def read(self,address,peek=False):
+        return self.current_map.read(address,peek)
+
+    def write(self,address,value):
+      if address in self.mapping.keys():  
+        print(f'{Ansi.FG_BRIGHT_RED}Changing Map to key: {address:04X} AddressSpace: {self.mapping[address].uuid} Start: {self.start:04X} End: {self.end:04X}{Ansi.RESET}',end='')
+        self.current_map = self.mapping[address]
+      else:
+        return self.current_map.write(address,value)
+
+    def map(self, address_space, map_key):
+      if map_key in self.mapping.keys():
+        raise ValueError(f'Virtual Address Space: Map key {map_key} already exists.')
+      else:
+        self.mapping[map_key] = address_space
+        if self.current_map is None:
+          self.current_map = address_space
+
+class MMU:
     def __init__(self):
+        self.memory = {}
+        self.mapped_memory = []
+        self.watch_list = []
+
+        # {key: [readmethod,writemethod]}
+
+    def add(self, address_space:AddressSpace,take_ownership: bool = False):
+        for k, v in address_space.data.items():
+            self.memory[k] = [address_space.read,address_space.write]
+    
+    def watch(self, address):
+        if not address in self.watch_list:
+            self.watch_list.append(address)
+
+    def add_virtual(self, mapped_memory:MappedMemory):
+        for key in mapped_memory.mapping.keys():
+            if key in self.memory.keys():
+                self.memory[key] = [self.memory[key][0],mapped_memory.write]
+            else:
+               self.memory[key] = [mapped_memory.read,mapped_memory.write]
+               
+        for i in range(mapped_memory.start,mapped_memory.end+1):
+            self.memory[i] = [mapped_memory.read,mapped_memory.write]
+
+    def __getitem__(self,key):
+        if key in self.memory.keys():
+            if key in self.watch_list:
+                print(f"Memory Watch: Read {key}:{self.memory[key][0](key)}")
+            return self.memory[key][0](key)
+      
+    def read(self,key,peek=False):
+        if key in self.memory.keys():
+            if key in self.watch_list:
+                print(f"Memory Watch: Read {key}:{self.memory[key][0](key)}")
+            return self.memory[key][0](key,True)
+    
+    def __setitem__(self,key,value):
+        if key in self.memory.keys():
+            if key in self.watch_list:
+                print(f"Memory Watch: Write {key}:{value}")
+            return self.memory[key][1](key,value)
+        assert False
+    
+    def write(self,key,value):
+       self.__setitem__(key,value)
+    
+    def _dump(self):
+        count = 1
+        valstr = ''
+        sorted_memeory = {k: self.memory[k] for k in sorted(self.memory)}
+        dump = ''
+        for key in sorted_memeory:
+            #print(f'{key}: {sorted_memeory[key]}')
+            valstr = valstr + f' {self.memory[key][0](key):02X}'
+
+            if count == 1:
+                print(f'{key:04X}:',end='')
+                dump = dump + f'{key:04X}:'
+            if count == 16:
+                dump = dump + valstr + '\n'
+                print(valstr)
+                valstr = ''
+                count = 1
+            else:
+                count +=1
+            
+        print(f'{valstr}')
+        return dump
+
+class CPU:
+    def __init__(self,ver='6502'):
         # Registers
         self.a = 0x00  # Accumulator
         self.x = 0x00  # X register
@@ -377,28 +470,70 @@ class CPU:
         self.u = 1 # Unused (Always set to 1 internally)
         self.v = 0 # Overflow
         self.n = 0 # Negative
+        self.timer = None
 
         # Memory: 64KB
         self.memory = MMU()
-        self.memory.add(AddressSpace(0,0XFF,name='ZeroPage'))
-        self.memory.add(AddressSpace(0x100,2**16,name='MainMemory'))
-        self.memory.add(AddressSpace(0xFFFC,0xFFFD,name='6502 Reset Vector'))
-        ACIA =Device(0xD010,0xD013,'rw','ACIA')
-        self.memory.add(ACIA)
 
-        
-        self.memory.add_watch(0x00,name='ARG COUNTER')
-        self.memory.add_watch(0x514,name='RUNPTR')
-        
-        thread = threading.Thread(target=self.timer, args=(5,))
-        thread.start()
-
-        
+        self.ignore_ukn_opcode = False
+        self.symbols = {}
+                
         # Opcode table
         # Each opcode entry: (function, addressing_mode, cycles)
         # For brevity, we'll implement a small subset.
         # Official 6502 Opcodes
     # (Instruction, Addressing Mode, Cycles)
+
+        self.opcode_table_C = {
+            # ADC
+            0x72: (self.ADC, self.indzp, 5),
+
+            # Additional 65C02 instructions
+            0x12: (self.ORA, self.indzp, 5),
+            0x32: (self.AND, self.indzp, 5),
+            0x52: (self.EOR, self.indzp, 5),
+            0x92: (self.STA, self.indzp, 5),
+            0xB2: (self.LDA, self.indzp, 5),
+            0xD2: (self.CMP, self.indzp, 5),
+            0xF2: (self.SBC, self.indzp, 5),
+
+            # STZ (Store Zero)
+            0x64: (self.STZ, self.zp, 3),
+            0x74: (self.STZ, self.zpx, 4),
+            0x9C: (self.STZ, self.abs, 4),
+            0x9E: (self.STZ, self.absx, 5),
+
+            # BRA (Branch Always)
+            0x80: (self.BRA, self.rel, 3),
+
+            # PHX, PLX (Push/Pull X)
+            0xDA: (self.PHX, self.imp, 3),
+            0xFA: (self.PLX, self.imp, 4),
+
+            # PHY, PLY (Push/Pull Y)
+            0x5A: (self.PHY, self.imp, 3),
+            0x7A: (self.PLY, self.imp, 4),
+
+            # INC Accumulator
+            0x1A: (self.INC, self.acc, 2),
+
+            # DEC Accumulator
+            0x3A: (self.DEC, self.acc, 2),
+
+            # TRB (Test and Reset Bits)
+            0x14: (self.TRB, self.zp, 5),
+            0x1C: (self.TRB, self.abs, 6),
+
+            # TSB (Test and Set Bits)
+            0x04: (self.TSB, self.zp, 5),
+            0x0C: (self.TSB, self.abs, 6),
+
+            # Additional BIT addressing modes for 65C02
+            0x34: (self.BIT, self.zpx, 4),    # BIT Zero Page,X
+            0x3C: (self.BIT, self.absx, 4),   # BIT Absolute,X
+            0x89: (self.BIT, self.imm, 2),    # BIT Immediate
+        }
+
         self.opcode_table = {
             # ADC
             0x69: (self.ADC, self.imm, 2),
@@ -663,13 +798,9 @@ class CPU:
             # TYA
             0x98: (self.TYA, self.imp,2)
         }
-
-    def timer(self,length):
-        while True:
-            print('Timer Started')
-            time.sleep(length)
-            print('Initiating IRQ')
-            self._IRQ()
+  
+        if ver == '65C02':
+            self.opcode_table = self.opcode_table | self.opcode_table_C  
 
     def reset(self):
         # Reset vector at FFFC-FFFD
@@ -688,11 +819,28 @@ class CPU:
         self.u = (value >> 5) & 1
         self.v = (value >> 6) & 1
         self.n = (value >> 7) & 1
+    
+    def set_z_flag(self, condition):
+        self.z = 1 if condition else 0
+
+    # Set Negative flag explicitly
+    def set_n_flag(self, condition):
+        self.n = 1 if condition else 0
+
+    # Set Overflow flag explicitly
+    def set_v_flag(self, condition):
+        self.v = 1 if condition else 0
+
+    # Set both Zero and Negative flags after most instructions
+    def set_zn_flags(self, value):
+        self.set_z_flag(value == 0)
+        self.set_N_fl
 
     def get_flags(self):
         return (self.n << 7) | (self.v << 6) | (self.u << 5) | (self.b << 4) | (self.d << 3) | (self.i << 2) | (self.z << 1) | self.c
 
     def read(self, addr):
+        #print(f"Read:{addr:04X} {self.memory[addr & 0xFFFF]:02X}")
         return self.memory[addr & 0xFFFF]
 
     def write(self, addr, value):
@@ -728,6 +876,15 @@ class CPU:
     def zpy(self):
         addr = (self.read(self.pc) + self.y) & 0xFF
         self.pc += 1
+        return addr
+    
+    def indzp(self):
+        addr = (self.read(self.pc)) & 0xFF
+        self.pc += 1
+        return addr
+
+    def acc(self):
+        addr = -1
         return addr
 
     def abs(self):
@@ -858,19 +1015,19 @@ class CPU:
         
     def BMI(self, offset):
         if self.n == 1:
-            old_pc = self.pc
             self.pc = (self.pc + offset) & 0xFFFF
-            print(f'Branching to {str(hex(self.pc))[2:].zfill(2).upper()}')
 
     def BNE(self, offset):
         if self.z == 0:
-            old_pc = self.pc
             self.pc = (self.pc + offset) & 0xFFFF
 
     def BPL(self, offset):
         if self.n == 0:
-            old_pc = self.pc
             self.pc = (self.pc + offset) & 0xFFFF
+
+    # 65C02 0x80 BRA
+    def BRA(self,offset):
+        self.PC = (self.PC + offset) & 0xFFFF
 
     def BRK(self, addr):
         self.pc += 1
@@ -880,7 +1037,7 @@ class CPU:
         self.push(flags)
         self.i = 1
         self.pc = self.read(0xFFFE) | (self.read(0xFFFF) << 8)
-        assert False
+        
         
     def BVC(self, offset):
         if self.v == 0:
@@ -910,7 +1067,7 @@ class CPU:
         self.c = 1 if self.a >= val else 0
         self.z = 1 if self.a == val else 0
         self.n = 1 if (result & 0x80) != 0 else 0
-        print(f"Comparing {hex(val)} ({chr(val)}), from {hex(addr)}  with {hex(self.a)} ({chr(self.a)}), result: {hex(result)}")
+        #print(f"Comparing {hex(val)} ({chr(val)}), from {hex(addr)}  with {hex(self.a)} ({chr(self.a)}), result: {hex(result)}".replace('\n'," ").replace("\r"," "),end='')
 
     def CPX(self, addr):
         val = self.read(addr)
@@ -918,6 +1075,7 @@ class CPU:
         self.c = 1 if self.x >= val else 0
         self.z = 1 if self.x == val else 0
         self.n = 1 if (result & 0x80) != 0 else 0
+        print(f"CPX {hex(val)} ({chr(val)}), from {hex(addr)}  with {hex(self.x)} ({chr(self.x)}), result: {hex(result)}",end='')
 
     def CPY(self, addr):
         val = self.read(addr)
@@ -925,13 +1083,17 @@ class CPU:
         self.c = 1 if self.y >= val else 0
         self.z = 1 if self.y == val else 0
         self.n = 1 if (result & 0x80) != 0 else 0
-        print(f"Comparing {hex(val)} ({chr(val)}), from {hex(addr)}  with {hex(self.y)} ({chr(self.y)}), result: {hex(result)}")
+        print(f"Comparing {hex(val)} ({chr(val)}), from {hex(addr)}  with {hex(self.y)} ({chr(self.y)}), result: {hex(result)}",end='')
 
     def DEC(self, addr):
-        val = self.read(addr)
-        val = (val - 1) & 0xFF
-        self.write(addr, val)
-        self.set_zn(val)
+        if addr == -1:
+            self.a = self.a - 1 & 0xFF
+            self.set_zn(self.a)
+        else:
+            val = self.read(addr)
+            val = (val - 1) & 0xFF
+            self.write(addr, val)
+            self.set_zn(val)
 
     def DEX(self, addr):
         self.x = (self.x - 1) & 0xFF
@@ -947,10 +1109,14 @@ class CPU:
         self.set_zn(self.a)
 
     def INC(self, addr):
-        val = self.read(addr)
-        val = (val + 1) & 0xFF
-        self.write(addr, val)
-        self.set_zn(val)
+        if addr == -1:
+            self.a = self.a + 1 & 0xFF
+            self.set_zn(self.a)
+        else:
+            val = self.read(addr)
+            val = (val + 1) & 0xFF
+            self.write(addr, val)      
+            self.set_zn(val)
 
     def INX(self, addr):
         self.x = (self.x + 1) & 0xFF
@@ -961,6 +1127,10 @@ class CPU:
         self.set_zn(self.y)
 
     def _IRQ(self):
+        if self.i == 1: return
+        irq_str = f"IRQ Hardware IRQ"
+        print(f"\n{Ansi.BOLD}{self.pc:04X}: {Ansi.BG_BRIGHT_RED} {irq_str:<127}{Ansi.RESET}",end='')
+        #self.i = 1
         low_byte = self.pc & 0xFF
         high_byte = (self.pc >> 8) & 0xFF
         self.push(high_byte)
@@ -970,6 +1140,7 @@ class CPU:
         low = self.read(0xFFFE)
         high = self.read(0xFFFE + 1)
         self.pc = (high << 8) | low
+        self.i = 0
 
     def JMP(self, addr):
         self.pc = addr
@@ -985,7 +1156,7 @@ class CPU:
         val = self.read(addr)
         self.a = val
         self.set_zn(self.a)
-        print(f"Loaded 'A' with value {hex(val)} ({chr(val)}), from {hex(addr)}", end='')
+        #print(f"[A'] <- {addr:04X}:{val:02X} {'(' + chr(val) + ')' if 0 < val < 127 else ' '}".replace("\n"," ").replace('\r'," "), end='')
 
     def LDX(self, addr):
         val = self.read(addr)
@@ -996,7 +1167,6 @@ class CPU:
         val = self.read(addr)
         self.y = val
         self.set_zn(self.y)
-        print(f"Loaded 'Y' with value {hex(val)}, from {hex(addr)}",end='')
 
     def LSR(self, addr=None):
         if addr is None:
@@ -1027,6 +1197,14 @@ class CPU:
     def PHP(self, addr):
         flags = self.get_flags() | 0x30  # set B and U bits
         self.push(flags)
+    
+    # 65C02
+    def PHX(self,addr):
+        self.push(self.x)
+    
+    # 65C02
+    def PHY(self):
+        self.push(self.Y)
 
     def PLA(self, addr):
         val = self.pull()
@@ -1037,6 +1215,14 @@ class CPU:
         val = self.pull()
         # Bits 4 and 5 are ignored in stored flags, so we handle that if needed
         self.set_flags((val & 0xEF) | 0x20) # U=1 always
+    
+    def PLX(self):
+        self.X = self.pull()
+        self.set_zn_flags(self.X)
+    
+    def PLY(self):
+        self.Y = self.pull()
+        self.set_zn_flags(self.Y)
 
     def ROL(self, addr=None):
         if addr is None:
@@ -1112,6 +1298,10 @@ class CPU:
 
     def STY(self, addr):
         self.write(addr, self.y)
+    
+    # 65C02
+    def STZ(self, addr):
+        self.write(addr, 0x00)
 
     def TAX(self, addr):
         self.x = self.a
@@ -1120,6 +1310,19 @@ class CPU:
     def TAY(self, addr):
         self.y = self.a
         self.set_zn(self.y)
+    
+    # 65C02
+    def TRB(self, addr):
+        value = self.read(addr)
+        result = (~self.a) & value
+        self.set_z_flag(self.a & value == 0)
+        self.write(addr, result)
+    
+    def TSB(self, addr):
+        value = self.read(addr)
+        result = self.a | value
+        self.set_z_flag(self.a & value == 0)
+        self.write(addr, result)
 
     def TSX(self, addr):
         self.x = self.sp
@@ -1137,10 +1340,16 @@ class CPU:
         self.set_zn(self.a)
 
     def step(self):
-        opcode = self.read(self.pc)
-        if not (0 <= opcode <= 255):
-            assert False
+        import datetime
+        if self.timer is None:
+            self.timer  = time.time()
         
+        opcodesym = ''  # If symbols present we will load these
+        opcode = self.read(self.pc)
+        if self.pc in self.symbols.keys(): 
+            opcodesym = Ansi.FG_BRIGHT_GREEN + "(" + self.symbols[self.pc].strip() + ")" 
+        else:
+            opcodesym = Ansi.FG_BRIGHT_GREEN         
         inst_addr = self.pc
         
         self.pc += 1
@@ -1148,57 +1357,44 @@ class CPU:
         if opcode not in self.opcode_table:
             # Unimplemented opcode - just NOP for now
             # In a real emulator, you might handle this differently.
-            print(f'{hex(inst_addr)} OPCODE NOT FOUND: {hex(opcode)}')
+            raise ValueError(f'{hex(inst_addr)} OPCODE NOT FOUND: {hex(opcode)}')
+        else:    
+            try:
+                instr, mode, cycles = self.opcode_table[opcode]
+                addr = mode()
+                instr(addr)
+                time.sleep(SLEEP)
             
-
-        instr, mode, cycles = self.opcode_table[opcode]
-        
-        a, x, y, z, n = hex(self.a), hex(self.x), hex(self.y), hex(self.z), hex(self.n)
-
-        addr = mode()
-        print(f"\n{hex(inst_addr)}\t {instr.__qualname__[-3:]}\t {mode.__qualname__[-3:]}\t {addr}\t a:{a}, x:{x}, y:{y}\t Flags: z:{z} n:{n}",end=' ')
-        #print(f'{hex(inst_addr)}:{hex(opcode)} {instr.__qualname__}, {mode.__qualname__}::{hex(addr)}:{hex(self.memory[addr])}')
-        try:
-            instr(addr)
-        except:
-            self.memory.dump()
-            print(f"\n\n{hex(inst_addr)}\t {instr.__qualname__[-3:]}\t {mode.__qualname__[-3:]}\t {addr}\t a:{a}, x:{x}, y:{y}\t Flags: z:{z} n:{n}",end=' ')
-            assert False
-        time.sleep(SLEEP)
-        return cycles
-
-# Example usage:
-if __name__ == "__main__":
-    cpu = CPU()
-    # Simple test: Load immediate values and transfer
-    # Set reset vector to 0x8000
-    
-    cpu.write(0xFFFC, 0x00)
-    cpu.write(0xFFFD, 0x20)
-
-    cpu.write(0xFFFE, 0x99)
-    cpu.write(0xFFFF, 0x21)
-
-   
-    
-    cpu.memory._load_from_bf('wozmon.bytes',0xEE00)
-    print(hex(cpu.memory[0xEE00]))
-    
-    #cpu.memory.dump()
-    cpu.memory._load_from_bf('os.bytes',0x2000)
-
-    #cpu.memory.dump()
-    #assert False
-       
-    cpu.reset()
-    cycles = 0
-    
-    while True:
-        c = cpu.step()
-        
-        cycles += c
-        
-
-
-
+            except KeyboardInterrupt:
+                print("Debug here")
+                exit()
+                
+            except Exception as e:
+                print(e)
+            finally:
+            
+                a, x, y, z, i, d, b, u, v, n = self.a, self.x, self.y, self.z, self.i, self.d, self.b, self.u, self.v, self.n
+            
+                addr_str = f"{addr:04X}" if addr else "----"
+                if addr is not None:
+                    addr_val = self.memory.read(addr,True)
+                    if addr_val is not None:
+                        addr_str += f"  [{addr_val:02X}] {'(' + chr(addr_val) + ')' if 47 < addr_val < 127 else ''}"
+                    pass
+                if addr in self.symbols.keys():
+                    addr_str += f"     {self.symbols[addr]:>10} "
+                sp = self.sp
+                stack = []
+                stack_str = ''
+                for ad in range(sp,0XfD):
+                    stack.append(self.read(0x0100 + ad +1))
+                for s in stack:
+                    stack_str = stack_str + f' {s:02X}'
+                            
+                print(f"\n{inst_addr:04X}: {opcodesym:<25} {Ansi.BOLD}{Ansi.BG_BRIGHT_GREEN} {instr.__qualname__[-3:]} {Ansi.RESET}{Ansi.BG_BLUE}  {mode.__qualname__[-3:]} {addr_str:<32}{Ansi.BG_YELLOW}{Ansi.FG_BRIGHT_BLUE} a:{a:02X}, x:{x:02X}, y:{y:02X} {Ansi.BG_GREEN} z:{z:01X} i:{i:01X} d:{d:01X} b:{b:01X} u:{u:01X} v:{v:01X} n:{n:01X} {Ansi.BG_BRIGHT_BLACK} {Ansi.BG_BRIGHT_CYAN}sp:[{sp:02X}]: [{stack_str}] {Ansi.RESET}",end=' ')
+                if self.timer is not None:
+                    if int(time.time() - self.timer) >= 5.0:
+                        self._IRQ()
+                        self.timer = start_time = time.time()
+            
     
