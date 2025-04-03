@@ -76,10 +76,9 @@ class ACIA_Terminal:
         self.output_buffer = []
         self.status = 0x02 
         self.getch = None
-        self.cursor_loc = (1,0)
+        self.cursor_loc = (3,0)
         self.data = {address: 0 for address in range(start,end+1)}
-
-        
+       
 
         try:
             # Unix-based systems
@@ -111,6 +110,7 @@ class ACIA_Terminal:
     def read_key(self):
         while True:
             key = self.getch()
+            sys.stdout.write(key)
             self.input_buffer.append(ord(key))
             time.sleep(.01)
 
@@ -133,16 +133,17 @@ class ACIA_Terminal:
                 if cd < 0: cd = 0
                 #if cd > 0x80: cd = cd-0x80
                 if cd == 0xD:
-                    sys.stdout.write('\n')
+                    #sys.stdout.write('\n')
                     #if self.cursor_loc[0] > 10:
                     #    self.cursor_loc = (1,0)
                     #else:
                     self.cursor_loc = (self.cursor_loc[0]+1,0)
                 else:
-                    self.cursor_loc = (self.cursor_loc[0],self.cursor_loc[1]+1)
-                    move_cursor = f"\x1b[{self.cursor_loc[0]};{self.cursor_loc[1]}H" 
-                    sys.stdout.write(move_cursor)  
-                    sys.stdout.write(chr(cd))
+                    #self.cursor_loc = (self.cursor_loc[0],self.cursor_loc[1]+1)
+                    #move_cursor = f"\x1b[{self.cursor_loc[0]};{self.cursor_loc[1]}H" 
+                    #sys.stdout.write(move_cursor)  
+                    pass
+                sys.stdout.write(chr(cd))
                 
         elif address == self.start +3:
             pass
@@ -1517,10 +1518,15 @@ class CPU:
             for s in stack:
                 stack_str = stack_str + f' {s:02X}'
 
-            move_cursor = "\x1b[0;25H" 
+            '''
+            move_cursor = "\x1b[1;100H" 
+            sys.stdout.write(move_cursor)  
+            sys.stdout.write(f"{inst_addr:04X}: {opcodesym:<25} {Ansi.BOLD}{Ansi.BG_BRIGHT_GREEN} {instr.__qualname__[-3:]} {Ansi.RESET}{Ansi.BG_BLUE}") 
+            move_cursor = "\x1b[2;100H"
             sys.stdout.write(move_cursor)  
             sys.stdout.write(f"{Ansi.BG_YELLOW}{Ansi.FG_BRIGHT_BLUE} a:{a:02X}, x:{x:02X}, y:{y:02X} {Ansi.RESET}")        
             #print(f"\n{inst_addr:04X}: {opcodesym:<25} {Ansi.BOLD}{Ansi.BG_BRIGHT_GREEN} {instr.__qualname__[-3:]} {Ansi.RESET}{Ansi.BG_BLUE}  {mode.__qualname__[-3:]} {addr_str:<32}{Ansi.BG_YELLOW}{Ansi.FG_BRIGHT_BLUE} a:{a:02X}, x:{x:02X}, y:{y:02X} {Ansi.BG_GREEN} z:{z:01X} i:{i:01X} d:{d:01X} b:{b:01X} u:{u:01X} v:{v:01X} n:{n:01X} {Ansi.BG_BRIGHT_BLACK} {Ansi.BG_BRIGHT_CYAN}sp:[{sp:02X}]: [{stack_str}] {Ansi.RESET}",end=' ')
+            '''
             if self.timer is not None:
                 if int(time.time() - self.timer) >= 5.0:
                     self._IRQ()
