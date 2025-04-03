@@ -4,8 +4,10 @@ import threading
 import time
 import os
 import re
+import sys
 
-SLEEP = 0.1
+
+SLEEP = 0.0
 
 class Ansi:
     """
@@ -63,6 +65,118 @@ class Ansi:
     BG_BRIGHT_MAGENTA = "\033[105m"
     BG_BRIGHT_CYAN    = "\033[106m"
     BG_BRIGHT_WHITE   = "\033[107m"
+
+class ACIA_Terminal:
+    def __init__(self,start,end,mode,name='Device_'):
+        self.start = start
+        self.end = end
+        self.mode = mode
+        self.name = name
+        self.input_buffer = []
+        self.output_buffer = []
+        self.status = 0x02 
+        self.getch = None
+        self.cursor_loc = (1,0)
+        self.data = {address: 0 for address in range(start,end+1)}
+
+        
+
+        try:
+            # Unix-based systems
+            import termios, tty, sys
+
+            def getch():
+                fd = sys.stdin.fileno()
+                old_settings = termios.tcgetattr(fd)
+                try:
+                    tty.setraw(fd)
+                    return sys.stdin.read(1)
+                finally:
+                    termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+            
+            self.getch = getch
+        except ImportError:
+            # Windows
+            import msvcrt
+
+            def getch():
+                return msvcrt.getch().decode()
+            
+            self.getch = getch
+
+        self.read_key_thread = threading.Thread(target=self.read_key, daemon=True)
+        self.read_key_thread.start()
+        
+        
+    def read_key(self):
+        while True:
+            key = self.getch()
+            self.input_buffer.append(ord(key))
+            time.sleep(.01)
+
+            
+       
+    def peek(self,address):
+        if len(self.input_buffer) > 0:
+            char = self.input_buffer[0]
+            return char        
+            
+    def write(self,address, data):
+        #print(f'[{self.name}] --> {str(hex(address))[2:].zfill(4).upper()}:{str(hex(data))[2:].zfill(2).upper()}') 
+        if address == self.start + 1:
+            pass
+            #print('writing to d011')
+        elif address == self.start +2:
+            if data != 0x00:
+                cd = data #if data < 128 else data-0x80
+                
+                if cd < 0: cd = 0
+                #if cd > 0x80: cd = cd-0x80
+                if cd == 0xD:
+                    sys.stdout.write('\n')
+                    #if self.cursor_loc[0] > 10:
+                    #    self.cursor_loc = (1,0)
+                    #else:
+                    self.cursor_loc = (self.cursor_loc[0]+1,0)
+                else:
+                    self.cursor_loc = (self.cursor_loc[0],self.cursor_loc[1]+1)
+                    move_cursor = f"\x1b[{self.cursor_loc[0]};{self.cursor_loc[1]}H" 
+                    sys.stdout.write(move_cursor)  
+                    sys.stdout.write(chr(cd))
+                
+        elif address == self.start +3:
+            pass
+            #print(f'writing to d013 {data}')
+        else:
+            assert False
+          
+    def read(self,address,peek=False):
+        if address == self.start: 
+            # Reading data register clears the receive full bit
+            if len(self.input_buffer) > 0:
+                if peek:
+                    return self.input_buffer[0]
+                char = self.input_buffer.pop(0)        
+                if len(self.input_buffer) == 0:
+                    self.status &= ~0x01
+                return char 
+            else:
+                return 0x00         
+          
+        elif address == self.start + 1:
+            if len(self.input_buffer) > 0:
+                cr_value = 0x80
+            else:
+                cr_value = 0x00
+            #print(f'[{self.name}] <-- {str(hex(address))[2:].zfill(4).upper()}:{str(hex(cr_value))[2:].zfill(2).upper()}')
+            return cr_value
+
+        #DSP
+        elif address == self.start + 2:
+            # Always ready to recive data to send to reminal
+            dsp = 0X00
+            return dsp
+        return 0x00
 
 class ACIA_Server:
     def __init__(self, acia, host='0.0.0.0', port=6502):
@@ -450,6 +564,13 @@ class MMU:
         print(f'{valstr}')
         return dump
 
+# No Magik Numbers
+CPU_6502_RESET_VECTOR = 0xFFFC
+CPU_6502_IRQBRK_VECTOR = 0xFFFE
+CPU_6502_NMI_VECTOR = 0
+
+CPU_6502_STACK_POINTER = 0xFD
+
 class CPU:
     def __init__(self,ver='6502'):
         # Registers
@@ -470,6 +591,9 @@ class CPU:
         self.u = 1 # Unused (Always set to 1 internally)
         self.v = 0 # Overflow
         self.n = 0 # Negative
+
+        self.resetV = CPU_6502_RESET_VECTOR
+        self.irqbrkV = CPU_6502_IRQBRK_VECTOR
         self.timer = None
 
         # Memory: 64KB
@@ -804,10 +928,10 @@ class CPU:
 
     def reset(self):
         # Reset vector at FFFC-FFFD
-        low = self.read(0xFFFC)
-        high = self.read(0xFFFD)
+        low = self.read(self.resetV)
+        high = self.read(self.resetV+1)
         self.pc = (high << 8) | low
-        self.sp = 0xFD
+        self.sp = CPU_6502_STACK_POINTER
         self.set_flags(0x24) # Set flags to default state
 
     def set_flags(self, value):
@@ -946,6 +1070,8 @@ class CPU:
         # Convert offset to signed
         if offset & 0x80:
             offset -= 0x100
+        if offset < -128 or offset > 127:
+            raise ValueError()
         return offset
 
     # Instructions
@@ -1036,7 +1162,7 @@ class CPU:
         flags = self.get_flags() | 0x10  # B flag set
         self.push(flags)
         self.i = 1
-        self.pc = self.read(0xFFFE) | (self.read(0xFFFF) << 8)
+        self.pc = self.read(self.irqbrkV) | (self.read(self.irqbrkV+1) << 8)
         
         
     def BVC(self, offset):
@@ -1075,7 +1201,7 @@ class CPU:
         self.c = 1 if self.x >= val else 0
         self.z = 1 if self.x == val else 0
         self.n = 1 if (result & 0x80) != 0 else 0
-        print(f"CPX {hex(val)} ({chr(val)}), from {hex(addr)}  with {hex(self.x)} ({chr(self.x)}), result: {hex(result)}",end='')
+        #print(f"CPX {hex(val)} ({chr(val)}), from {hex(addr)}  with {hex(self.x)} ({chr(self.x)}), result: {hex(result)}",end='')
 
     def CPY(self, addr):
         val = self.read(addr)
@@ -1083,7 +1209,7 @@ class CPU:
         self.c = 1 if self.y >= val else 0
         self.z = 1 if self.y == val else 0
         self.n = 1 if (result & 0x80) != 0 else 0
-        print(f"Comparing {hex(val)} ({chr(val)}), from {hex(addr)}  with {hex(self.y)} ({chr(self.y)}), result: {hex(result)}",end='')
+        #print(f"Comparing {hex(val)} ({chr(val)}), from {hex(addr)}  with {hex(self.y)} ({chr(self.y)}), result: {hex(result)}",end='')
 
     def DEC(self, addr):
         if addr == -1:
@@ -1359,42 +1485,45 @@ class CPU:
             # In a real emulator, you might handle this differently.
             raise ValueError(f'{hex(inst_addr)} OPCODE NOT FOUND: {hex(opcode)}')
         else:    
-            try:
-                instr, mode, cycles = self.opcode_table[opcode]
-                addr = mode()
-                instr(addr)
-                time.sleep(SLEEP)
+            #try:
+            instr, mode, cycles = self.opcode_table[opcode]
+            addr = mode()
+            instr(addr)
+            time.sleep(SLEEP)
             
-            except KeyboardInterrupt:
-                print("Debug here")
-                exit()
+            #except KeyboardInterrupt:
+                #print("Debug here")
+                #exit()
                 
-            except Exception as e:
-                print(e)
-            finally:
+            #except Exception as e:
+                #print(e)
+            #finally:
             
-                a, x, y, z, i, d, b, u, v, n = self.a, self.x, self.y, self.z, self.i, self.d, self.b, self.u, self.v, self.n
-            
-                addr_str = f"{addr:04X}" if addr else "----"
-                if addr is not None:
-                    addr_val = self.memory.read(addr,True)
-                    if addr_val is not None:
-                        addr_str += f"  [{addr_val:02X}] {'(' + chr(addr_val) + ')' if 47 < addr_val < 127 else ''}"
-                    pass
-                if addr in self.symbols.keys():
-                    addr_str += f"     {self.symbols[addr]:>10} "
-                sp = self.sp
-                stack = []
-                stack_str = ''
-                for ad in range(sp,0XfD):
-                    stack.append(self.read(0x0100 + ad +1))
-                for s in stack:
-                    stack_str = stack_str + f' {s:02X}'
-                            
-                print(f"\n{inst_addr:04X}: {opcodesym:<25} {Ansi.BOLD}{Ansi.BG_BRIGHT_GREEN} {instr.__qualname__[-3:]} {Ansi.RESET}{Ansi.BG_BLUE}  {mode.__qualname__[-3:]} {addr_str:<32}{Ansi.BG_YELLOW}{Ansi.FG_BRIGHT_BLUE} a:{a:02X}, x:{x:02X}, y:{y:02X} {Ansi.BG_GREEN} z:{z:01X} i:{i:01X} d:{d:01X} b:{b:01X} u:{u:01X} v:{v:01X} n:{n:01X} {Ansi.BG_BRIGHT_BLACK} {Ansi.BG_BRIGHT_CYAN}sp:[{sp:02X}]: [{stack_str}] {Ansi.RESET}",end=' ')
-                if self.timer is not None:
-                    if int(time.time() - self.timer) >= 5.0:
-                        self._IRQ()
-                        self.timer = start_time = time.time()
+            a, x, y, z, i, d, b, u, v, n = self.a, self.x, self.y, self.z, self.i, self.d, self.b, self.u, self.v, self.n
+        
+            addr_str = f"{addr:04X}" if addr else "----"
+            if addr is not None:
+                addr_val = self.memory.read(addr,True)
+                if addr_val is not None:
+                    addr_str += f"  [{addr_val:02X}] {'(' + chr(addr_val) + ')' if 47 < addr_val < 127 else ''}"
+                pass
+            if addr in self.symbols.keys():
+                addr_str += f"     {self.symbols[addr]:>10} "
+            sp = self.sp
+            stack = []
+            stack_str = ''
+            for ad in range(sp,0XfD):
+                stack.append(self.read(0x0100 + ad +1))
+            for s in stack:
+                stack_str = stack_str + f' {s:02X}'
+
+            move_cursor = "\x1b[0;25H" 
+            sys.stdout.write(move_cursor)  
+            sys.stdout.write(f"{Ansi.BG_YELLOW}{Ansi.FG_BRIGHT_BLUE} a:{a:02X}, x:{x:02X}, y:{y:02X} {Ansi.RESET}")        
+            #print(f"\n{inst_addr:04X}: {opcodesym:<25} {Ansi.BOLD}{Ansi.BG_BRIGHT_GREEN} {instr.__qualname__[-3:]} {Ansi.RESET}{Ansi.BG_BLUE}  {mode.__qualname__[-3:]} {addr_str:<32}{Ansi.BG_YELLOW}{Ansi.FG_BRIGHT_BLUE} a:{a:02X}, x:{x:02X}, y:{y:02X} {Ansi.BG_GREEN} z:{z:01X} i:{i:01X} d:{d:01X} b:{b:01X} u:{u:01X} v:{v:01X} n:{n:01X} {Ansi.BG_BRIGHT_BLACK} {Ansi.BG_BRIGHT_CYAN}sp:[{sp:02X}]: [{stack_str}] {Ansi.RESET}",end=' ')
+            if self.timer is not None:
+                if int(time.time() - self.timer) >= 5.0:
+                    self._IRQ()
+                    self.timer = start_time = time.time()
             
     

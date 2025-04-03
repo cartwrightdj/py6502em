@@ -503,7 +503,7 @@ read_line:      JSR     rdkey
         NOP
         JSR     cout
 		CLC
-		ADC		#$80
+		ADC		#$80	; Added to deal with emulated ACIA not using Apple Charachter Table
         CMP     #$8D
         BNE     Le280
         LDA     #$DF
@@ -665,6 +665,8 @@ Le3d3:  INC     ch
 ; Send character to display. Char is in A.
 Le3d5:  BIT     DSP          ; See if display ready
         BMI     Le3d5        ; Loop if not
+		CLC
+		SBC 	#$80
         STA     DSP          ; Write display data
         RTS                  ; and return
 
